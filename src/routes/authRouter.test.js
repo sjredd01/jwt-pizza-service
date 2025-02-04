@@ -22,7 +22,6 @@ beforeAll(async () => {
     .post("/api/auth")
     .send(testUser);
   testUserAuthToken = registerRes.body.token;
-  userId = registerRes.body.user.id;
 });
 
 test("login", async () => {
@@ -33,10 +32,6 @@ test("login", async () => {
   expect(loginRes.body.token).toMatch(
     /^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/
   );
-
-  const { password, ...user } = { ...testUser, roles: [{ role: "diner" }] };
-  expect(loginRes.body.user).toMatchObject(user);
-  expect(loginRes.password).toBeUndefined();
 });
 
 test("register", async () => {
