@@ -5,7 +5,6 @@ const testConfig = require("../test.config.js");
 const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
 let testUserAuthToken;
 let app;
-let userId;
 
 function randomName() {
   return Math.random()
@@ -37,6 +36,7 @@ test("login", async () => {
 
   const { password, ...user } = { ...testUser, roles: [{ role: "diner" }] };
   expect(loginRes.body.user).toMatchObject(user);
+  expect(loginRes.password).toBeUndefined();
 });
 
 test("register", async () => {
