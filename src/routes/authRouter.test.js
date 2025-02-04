@@ -94,11 +94,3 @@ test("logout without token", async () => {
   const logoutRes = await request(app).delete("/api/auth");
   expect(logoutRes.status).toBe(401);
 });
-
-// {
-//     method: 'POST',
-//     path: '/api/auth',
-//     description: 'Register a new user',
-//     example: `curl -X POST localhost:3000/api/auth -d '{"name":"pizza diner", "email":"d@jwt.com", "password":"diner"}' -H 'Content-Type: application/json'`,
-//     response: { user: { id: 2, name: 'pizza diner', email: 'd@jwt.com', roles: [{ role: 'diner' }] }, token: 'tttttt' },
-//   },
