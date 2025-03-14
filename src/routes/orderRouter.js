@@ -2,7 +2,7 @@ const express = require("express");
 const { Role } = require("../database/database.js");
 const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
 
-function createOrderRouter(db, config, authRouter) {
+function createOrderRouter(db, config, authRouter, metrics) {
   const orderRouter = express.Router();
 
   orderRouter.endpoints = [
@@ -130,6 +130,8 @@ function createOrderRouter(db, config, authRouter) {
       });
       const j = await r.json();
       if (r.ok) {
+        metrics.incrementTotalRevenue(order.items);
+
         res.send({
           order,
           reportSlowPizzaToFactoryUrl: j.reportUrl,

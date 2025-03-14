@@ -4,11 +4,12 @@ const { createOrderRouter } = require("./routes/orderRouter.js");
 const { createFranchiseRouter } = require("./routes/franchiseRouter.js");
 const version = require("./version.json");
 const { DB } = require("./database/database.js");
+const metrics = require("./metrics");
 
 async function createApp(config) {
   const app = express();
 
-  const db = new DB(config);
+  const db = new DB(config, metrics);
   await db.initialized;
 
   app.use(express.json());
@@ -24,11 +25,13 @@ async function createApp(config) {
     next();
   });
 
+  app.use((req, res, next) => metrics.collectRequest(req, res, next));
+
   const apiRouter = express.Router();
   app.use("/api", apiRouter);
 
-  const { authRouter } = createAuthRouter(db);
-  const { orderRouter } = createOrderRouter(db, config, authRouter);
+  const { authRouter } = createAuthRouter(db, metrics);
+  const { orderRouter } = createOrderRouter(db, config, authRouter, metrics);
   const { franchiseRouter } = createFranchiseRouter(db, authRouter);
 
   apiRouter.use(
