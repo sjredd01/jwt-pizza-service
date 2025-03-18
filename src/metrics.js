@@ -204,16 +204,30 @@ class Metrics {
   sendMetricToGrafana(metricPrefix, httpMethod, metricName, metricValue) {
     const metric = `${metricPrefix},source=${config.metrics.source},method=${httpMethod} ${metricName}=${metricValue}`;
 
+    const metricData = {
+      metric: metricPrefix,
+      source: config.metrics.source,
+      method: httpMethod,
+      metricName: metricName,
+      value: metricValue,
+    };
+
     fetch(`${config.metrics.url}`, {
       method: "post",
-      body: metric,
+      body: JSON.stringify(metricData),
       headers: {
+        "Content-Type": "application/json",
+
         Authorization: `Bearer ${config.metrics.userId}:${config.metrics.apiKey}`,
       },
     })
       .then((response) => {
         if (!response.ok) {
-          console.error("Failed to push metrics data to Grafana");
+          response.text().then((text) => {
+            console.error(
+              `Failed to push metrics data to Grafana: ${text}\n${metric}`
+            );
+          });
         } else {
           console.log(`Pushed ${metric}`);
         }
