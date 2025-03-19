@@ -2,7 +2,6 @@ const express = require("express");
 const fetch = require("node-fetch");
 const { Role } = require("../database/database.js");
 const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
-const metrics = require("../metrics.js");
 
 function createOrderRouter(db, config, authRouter, metrics) {
   const orderRouter = express.Router();

@@ -205,9 +205,6 @@ class Metrics {
     // Get the current time in Unix nanoseconds
     const timeUnixNano = BigInt(Date.now()) * BigInt(1_000_000); // Convert milliseconds to nanoseconds
 
-    const isFloat =
-      typeof metricValue === "number" && !Number.isInteger(metricValue);
-
     // Prepare the metric data in the expected structure
     const metricData = {
       resourceMetrics: [
