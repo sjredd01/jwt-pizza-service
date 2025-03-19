@@ -10,6 +10,9 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-prometheus": "^0.200.0",
+    "@opentelemetry/sdk-metrics": "^2.0.0",
     "bcrypt": "^5.1.1",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",

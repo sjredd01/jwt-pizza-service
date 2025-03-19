@@ -20,16 +20,16 @@ trap cleanup SIGINT
 
 # Simulate a user requesting the menu every 3 seconds
 while true; do
-  curl -s "$host/api/order/menu" > /dev/null
-  echo "Requesting menu..."
+  response=$(curl -s "$host/api/order/menu")
+  echo "Requesting menu... Response: $response"
   sleep 3
 done &
 pid1=$!
 
 # Simulate a user with an invalid email and password every 25 seconds
 while true; do
-  curl -s -X PUT "$host/api/auth" -d '{"email":"unknown@jwt.com", "password":"bad"}' -H 'Content-Type: application/json' > /dev/null
-  echo "Logging in with invalid credentials..."
+  response=$(curl -s -X PUT "$host/api/auth" -d '{"email":"unknown@jwt.com", "password":"bad"}' -H 'Content-Type: application/json')
+  echo "Logging in with invalid credentials... Response: $response"
   sleep 25
 done &
 pid2=$!
@@ -38,10 +38,10 @@ pid2=$!
 while true; do
   response=$(curl -s -X PUT $host/api/auth -d '{"email":"f@jwt.com", "password":"franchisee"}' -H 'Content-Type: application/json')
   token=$(echo $response | jq -r '.token')
-  echo "Login franchisee..."
+  echo "Login franchisee... Response: $response"
   sleep 110
-  curl -s -X DELETE $host/api/auth -H "Authorization: Bearer $token" > /dev/null
-  echo "Logging out franchisee..."
+  response=$(curl -s -X DELETE $host/api/auth -H "Authorization: Bearer $token")
+  echo "Logging out franchisee... Response: $response"
   sleep 10
 done &
 pid3=$!
@@ -50,16 +50,15 @@ pid3=$!
 while true; do
   response=$(curl -s -X PUT $host/api/auth -d '{"email":"d@jwt.com", "password":"diner"}' -H 'Content-Type: application/json')
   token=$(echo $response | jq -r '.token')
-  echo "Login diner..."
-  curl -s -X POST $host/api/order -H 'Content-Type: application/json' -d '{"franchiseId": 1, "storeId":1, "items":[{ "menuId": 1, "description": "Veggie", "price": 0.05 }]}'  -H "Authorization: Bearer $token" > /dev/null
-  echo "Bought a pizza..."
+  echo "Login diner... Response: $response"
+  response=$(curl -s -X POST $host/api/order -H 'Content-Type: application/json' -d '{"franchiseId": 1, "storeId":1, "items":[{ "menuId": 1, "description": "Veggie", "price": 0.05 }]}'  -H "Authorization: Bearer $token")
+  echo "Bought a pizza... Response: $response"
   sleep 20
-  curl -s -X DELETE $host/api/auth -H "Authorization: Bearer $token" > /dev/null
-  echo "Logging out diner..."
+  response=$(curl -s -X DELETE $host/api/auth -H "Authorization: Bearer $token")
+  echo "Logging out diner... Response: $response"
   sleep 30
 done &
 pid4=$!
-
 
 # Wait for the background processes to complete
 wait $pid1 $pid2 $pid3 $pid4

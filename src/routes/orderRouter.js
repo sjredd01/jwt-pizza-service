@@ -1,6 +1,8 @@
 const express = require("express");
+const fetch = require("node-fetch");
 const { Role } = require("../database/database.js");
 const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
+const metrics = require("../metrics.js");
 
 function createOrderRouter(db, config, authRouter, metrics) {
   const orderRouter = express.Router();
@@ -131,6 +133,7 @@ function createOrderRouter(db, config, authRouter, metrics) {
       const j = await r.json();
       if (r.ok) {
         metrics.incrementTotalRevenue(order.items);
+        metrics.incrementPizzasSold();
 
         res.send({
           order,
@@ -138,6 +141,7 @@ function createOrderRouter(db, config, authRouter, metrics) {
           jwt: j.jwt,
         });
       } else {
+        metrics.incrementPizzaFailures(); // Increment pizza failures
         res.status(500).send({
           message: "Failed to fulfill order at factory",
           reportPizzaCreationErrorToPizzaFactoryUrl: j.reportUrl,

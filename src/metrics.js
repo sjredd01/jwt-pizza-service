@@ -10,7 +10,7 @@ class Metrics {
     this.activeUsers = 0;
     this.successfulAuthentications = 0;
     this.failedAuthentications = 0;
-    this.pizzasSold = 0;
+    this.pizzasSold = 1;
     this.pizzaFailures = 0;
     this.revenue = 0;
 
@@ -202,34 +202,76 @@ class Metrics {
   }
 
   sendMetricToGrafana(metricPrefix, httpMethod, metricName, metricValue) {
-    const metric = `${metricPrefix},source=${config.metrics.source},method=${httpMethod} ${metricName}=${metricValue}`;
+    // Get the current time in Unix nanoseconds
+    const timeUnixNano = BigInt(Date.now()) * BigInt(1_000_000); // Convert milliseconds to nanoseconds
 
+    const isFloat =
+      typeof metricValue === "number" && !Number.isInteger(metricValue);
+
+    // Prepare the metric data in the expected structure
     const metricData = {
-      metric: metricPrefix,
-      source: config.metrics.source,
-      method: httpMethod,
-      metricName: metricName,
-      value: metricValue,
+      resourceMetrics: [
+        {
+          scopeMetrics: [
+            {
+              metrics: [
+                {
+                  name: `${metricPrefix}_${metricName}`,
+                  unit: "1", // You can change this if needed
+                  description: "",
+                  gauge: {
+                    dataPoints: [
+                      {
+                        asDouble: metricValue, // You can adjust this to use asFloat if needed
+                        timeUnixNano: timeUnixNano.toString(),
+                        attributes: [
+                          {
+                            key: "method",
+                            value: {
+                              stringValue: httpMethod,
+                            },
+                          },
+                          {
+                            key: "source",
+                            value: {
+                              stringValue: config.metrics.source,
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
     };
 
+    //console.log("Sending metric data:", JSON.stringify(metricData, null, 2));
+    console.log(`Metric Name: ${metricPrefix}_${metricName}`);
+    console.log(`Metric Value: ${metricValue}`);
+
+    // Sending the data to Grafana
     fetch(`${config.metrics.url}`, {
       method: "post",
       body: JSON.stringify(metricData),
       headers: {
         "Content-Type": "application/json",
-
         Authorization: `Bearer ${config.metrics.userId}:${config.metrics.apiKey}`,
       },
     })
-      .then((response) => {
+      .then(async (response) => {
         if (!response.ok) {
-          response.text().then((text) => {
-            console.error(
-              `Failed to push metrics data to Grafana: ${text}\n${metric}`
-            );
-          });
+          const text = await response.text();
+          console.error(
+            `Failed to push metrics data to Grafana: ${text}\n${JSON.stringify(
+              metricData
+            )}`
+          );
         } else {
-          console.log(`Pushed ${metric}`);
+          console.log(`Pushed metric ${metricName}`);
         }
       })
       .catch((error) => {

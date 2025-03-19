@@ -1,6 +1,7 @@
 const express = require("express");
+
 const jwt = require("jsonwebtoken");
-const config = require("../config.js");
+// const config = require("../config.js");
 const { asyncHandler } = require("../endpointHelper.js");
 const { Role } = require("../database/database.js");
 
@@ -18,7 +19,7 @@ async function setAuthUser(db, req, res, next) {
     try {
       if (await db.isLoggedIn(token)) {
         // Check the database to make sure the token is valid.
-        req.user = jwt.verify(token, config.jwtSecret);
+        req.user = jwt.verify(token, db.config.jwtSecret);
         req.user.isRole = (role) =>
           !!req.user.roles.find((r) => r.role === role);
       }
@@ -98,6 +99,7 @@ function createAuthRouter(db, metrics) {
     "/",
     asyncHandler(async (req, res) => {
       const { name, email, password } = req.body;
+      console.log("register", req.body);
       if (!name || !email || !password) {
         metrics.incrementFailedAuthentications();
         return res
@@ -121,13 +123,14 @@ function createAuthRouter(db, metrics) {
     asyncHandler(async (req, res) => {
       const { email, password } = req.body;
       const user = await db.getUser(email, password);
+
+      const auth = await setAuth(user);
       if (user) {
         metrics.incrementSuccessfulAuthentications();
         metrics.incrementActiveUsers();
       } else {
         metrics.incrementFailedAuthentications();
       }
-      const auth = await setAuth(user);
       res.json({ user: user, token: auth });
     })
   );
@@ -138,6 +141,7 @@ function createAuthRouter(db, metrics) {
     authRouter.authenticateToken,
     asyncHandler(async (req, res) => {
       await clearAuth(req);
+      console.log("logout", req);
       metrics.decrementActiveUsers();
       res.json({ message: "logout successful" });
     })
