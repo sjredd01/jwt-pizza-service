@@ -2,6 +2,7 @@ const express = require("express");
 const fetch = require("node-fetch");
 const { Role } = require("../database/database.js");
 const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
+const logger = require("../logger.js");
 
 function createOrderRouter(db, config, authRouter, metrics) {
   const orderRouter = express.Router();
@@ -130,6 +131,11 @@ function createOrderRouter(db, config, authRouter, metrics) {
         }),
       });
       const j = await r.json();
+      logger.log("info", "factoryRequest", {
+        url: `${config.factory.url}/api/order`,
+        statusCode: r.statusCode,
+      });
+
       if (r.ok) {
         metrics.incrementTotalRevenue(order.items);
         metrics.incrementPizzasSold();
